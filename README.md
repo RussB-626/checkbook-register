@@ -1,6 +1,51 @@
 # checkbook-register
 A lightweight checkbook register using Google Apps Script and Google Sheets to track transactions, expenses, and balances.
 
+![Checkbook Register Main Page](imgs/main_app_page.png)
+
+<details>
+    <summary>Create Transactions - Withdrawal Page</summary>
+    <img src="imgs/create_transactions_withdrawal_page.png">
+</details>
+<details>
+    <summary>Create Transactions - Deposit Page</summary>
+    <img src="imgs/create_transactions_deposit_page.png">
+</details>
+<details>
+    <summary>Create Transactions - Transfer Page</summary>
+    <img src="imgs/create_transactions_transfer_page.png">
+</details>
+<details>
+    <summary>Transactions - Balances Page</summary>
+    <img src="imgs/transactions_balances_page.png">
+</details>
+<details>
+    <summary>Transactions - Txns Page</summary>
+    <img src="imgs/transactions_txns_page.png">
+</details>
+<details>
+    <summary>Transactions - Pending Page</summary>
+    <img src="imgs/transactions_pending_page.png">
+</details>
+<details>
+    <summary>Common Transaction Withdrawls Page</summary>
+    <img src="imgs/common_transaction_withdrawals_page.png">
+</details>
+<details>
+    <summary>Categories - Expanses Page</summary>
+    <img src="imgs/categories_expenses_page.png">
+</details>
+<details>
+    <summary>Categories - Incomes Page</summary>
+    <img src="imgs/categories_incomes_page.png">
+</details>
+<details>
+    <summary>Categories - Differences Page</summary>
+    <img src="imgs/categories_differences_page.png">
+</details>
+
+---
+
 - [Google Sheet Setup](#google-sheet-setup)
 - [Installation and Setup Guide](#installation-and-setup-guide)
 - [Google Apps Script Setup and Deployment](#google-script-setup-and-deployment)
