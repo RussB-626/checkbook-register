@@ -1,0 +1,267 @@
+<ul class="nav nav-pills justify-content-center">
+  <li class="nav-item">
+    <a class="nav-link active" data-toggle="tab" href="#balances" onclick="updateGroupingBalances();">Balances</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" data-toggle="tab" href="#transactions" onclick="showTxns();">Txns</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" data-toggle="tab" href="#pending" onclick="showPending();">Pending</a>
+  </li>
+</ul>
+
+<div class="tab-content">
+
+  <!-- Balances Tab -->
+  <div class="tab-pane fade active show" id="balances">
+    <br>
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Account Balances</h5>
+      </div>
+      <div class="card-body" style="overflow-x: auto;">
+        <div id="account-balances-accordion-div"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transactions Tab -->
+  <div class="tab-pane fade" id="transactions">   
+    <br>
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Transactions</h5>
+      </div>
+      <div class="card-body" style="overflow-x: auto;">
+        <div id="transactions-table-div"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pending Tab -->
+  <div class="tab-pane fade" id="pending">  
+    <br>
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Pending Transactions</h5>
+      </div>
+      <div class="card-body" style="overflow-x: auto;">
+        <div id="pending-txns-table-div"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ========================================================================================== -->
+
+<script>
+  function updateGroupingBalances() {
+    document.getElementById('account-balances-accordion-div').innerHTML = "";
+    let html = '';
+
+    // Calculate Account Balances
+    let balances = {};
+    let totalOfAllBalances = 0;
+
+    // Loop Through Account Getting Balances
+    for(let account of pageInfo.accounts.map(a => a.name)) {
+      let accountTxns = pageInfo.txns.filter(t => t.account === account);
+      let accountBal = accountTxns.reduce(function (total,t) {
+        if(t.type.indexOf('W') >= 0) return total - Number(t.amount);
+        return total + Number(t.amount);
+      },0);
+
+      accountBal = financial(accountBal);
+      let isPos = Number(accountBal) >= 0 ? true : false;
+      balances[account] = {balance : Math.abs(Number(accountBal)), pos : isPos};
+      totalOfAllBalances += Number(accountBal);
+    }
+
+    // Build Table Header
+    html += '<table class="table table-striped table-hover table-responsive-12"><thead><tr>';
+    html += '<th scope="col">ACCOUNT</th>';
+    html += '<th scope="col" class="text-right">AMOUNT</th>';
+    html += '</tr></thead><tbody>';
+    
+    // // Loop on Accounts
+    for(let account of pageInfo.accounts.map(a => a.name)) {
+      html += '<tr>';
+
+      // Account
+      html += '<td>' + account + '</td>';
+
+      // Account Balance Amount
+      if(!balances[account].pos) html += '<td class="text-right text-danger">($' + financial(balances[account].balance) + ')</td>';
+      else html += '<td class="text-right">$' + financial(balances[account].balance) + '</td>';
+
+      html += '</tr>';
+    }
+    
+    // Report Total
+    html += '<tr class="table-light text-dark">';
+      html += '<td>TOTAL</td>';
+      let isPos = Number(totalOfAllBalances) >= 0 ? true : false;
+
+      if(!isPos) html += '<td class="text-right text-danger">($' + financial(Math.abs(totalOfAllBalances)) + ')</td>';
+      else html += '<td class="text-right">$' + financial(Math.abs(totalOfAllBalances)) + '</td>';
+
+    html += '</tr>';
+
+    html += '</tbody></table>';    
+
+    document.getElementById('account-balances-accordion-div').innerHTML = html;
+  }
+
+  // ==========================================================================================
+
+  function showTxns() {
+    document.getElementById('transactions-table-div').innerHTML = '';
+    let txnNum = 0;
+    let html = '';
+
+    // Build Table Header
+    html += '<table class="table table-hover table-responsive-lg" id="transactions-table"><thead><tr>';
+    html += '<th scope="col">#</th>';
+    html += '<th scope="col">DATE</th>';
+    html += '<th scope="col">ACCOUNT</th>';
+    html += '<th scope="col">CATEGORY</th>';
+    html += '<th scope="col">INFO</th>';
+    html += '<th scope="col">NOTE</th>';
+    html += '<th scope="col" class="text-right">AMOUNT</th>';
+    html += '<th scope="col" class="text-right">P</th>';
+    html += '</tr></thead><tbody>';
+    
+    // Loop on transactions
+    for(let txn of pageInfo.txns) {
+      // Increment Txn Number
+      txnNum ++;
+
+      html += '<tr>';
+
+      // Transaction Num
+      html += '<td><a class="text-info" href="javascript:void(0)" onclick="showTxnInfo(\'' + txnNum + '\');">' + txnNum + '</a></td>';
+
+      // Transaction Date
+      html += '<td>' + getDate(txn.date) + '</td>';
+
+      // Transaction Account
+      html += '<td>' + txn.account + '</td>';
+
+      // Transaction Category
+      html += '<td>' + txn.category + '</td>';
+
+      // Transaction Info
+      html += `<td>${txn.description}</td>`;
+
+      // Transaction Note
+      html += `<td>${txn.note}</td>`;
+
+      // Transaction Amount
+      if(txn.type.indexOf("W") >= 0) html += '<td class="text-right text-danger">($' + financial(txn.amount) + ')</td>';
+      else html += '<td class="text-right">$' + financial(txn.amount) + '</td>';
+
+      // Transaction Pending Flag
+      if(txn.pending) html += '<td class="text-right">&#10003</td>';
+      else html += '<td></td>';
+
+      html += '</tr>';
+    }
+
+    html += '</tbody></table>';
+
+    // Update table
+    document.getElementById('transactions-table-div').innerHTML = html;
+
+    // Enable datatable
+    $('#transactions-table').dataTable({
+      "order": [0, 'desc']
+    });
+  }
+
+  // ==========================================================================================
+
+  function showPending() {
+    document.getElementById('pending-txns-table-div').innerHTML = "";
+    let txnNum = 0;
+    let total = 0;
+    let html = '';
+
+    // Build Table Header
+    html += '<table class="table table-hover table-responsive-lg"><thead><tr>';
+    html += '<th scope="col">#</th>';
+    html += '<th scope="col">DATE</th>';
+    html += '<th scope="col">ACCOUNT</th>';
+    html += '<th scope="col">CATEGORY</th>';
+    html += '<th scope="col">INFO</th>';
+    html += '<th scope="col">NOTE</th>';
+    html += '<th scope="col" class="text-right">AMOUNT</th>';
+    html += '<th scope="col" class="text-right">P</th>';
+    html += '</tr></thead><tbody>';
+
+    // Loop on transactions
+    for(let txn of pageInfo.txns) {
+      // Increment Txn Number
+      txnNum++;
+
+      if(txn.pending) {
+        html += '<tr>';
+
+        // Transaction Number
+        html += '<td><a class="text-info" href="javascript:void(0)" onclick="showTxnInfo(\'' + txnNum + '\');">' + txnNum + '</a></td>';
+
+        // Transaction Date
+        html += '<td>' + getDate(txn.date) + '</td>';
+
+        // Transaction Account
+        html += '<td>' + txn.account + '</td>';
+
+      // Transaction Category
+      html += '<td>' + txn.category + '</td>';
+
+        // Transaction Info
+        html += `<td>${txn.description}</td>`;
+
+        // Transaction Note
+        html += `<td>${txn.note}</td>`;
+
+        // Transaction Amount
+        if(txn.type.indexOf("W") >= 0) {
+          html += '<td class="text-right text-danger">($' + financial(txn.amount) + ')</td>';
+          total = Number(total) - Number(txn.amount);
+        } else {
+          html += '<td class="text-right">$' + financial(txn.amount) + '</td>';
+          total = Number(total) + Number(txn.amount);
+        }
+
+        // Transaction Pending Flag
+        if(txn.pending) html += '<td class="text-right">&#10003</td>';
+        else html += '<td></td>';
+
+        html += '</tr>';
+      }
+    }
+
+    html += '</tbody></table>';
+
+    total = financial(total);
+    
+    html += '<table class="table table-hover"><tbody>';
+    html += '<tr class="table-light text-dark">';
+    html += '<td>TOTAL</td>';
+    
+    if(total < 0) {
+      total = total.toString().substring(1,total.toString().length);
+      html += '<td class="text-right text-danger">($' + total + ')</td>';
+    } else {
+      html += '<td class="text-right">$' + total + '</td>';
+    }
+    
+    html += '</tr>';
+    html += '</tbody></table>';
+
+    // Update table
+    document.getElementById('pending-txns-table-div').innerHTML = html;
+  }
+
+</script>

@@ -1,0 +1,142 @@
+<input type="text" readonly="" class="form-control-plaintext" id="deposit-txn-type" value="D" style="display: none;">
+<div class="row">
+  <div class="col">
+    <label for="deposit-date-input">Deposit Date:</label>
+    <input type="date" class="form-control" id="deposit-date-input" name="input-dates"/>
+  </div>
+</div>
+
+<br>
+<div class="row">
+  <div class="col">
+    <label for="deposit-account-select">Deposit Account:</label>
+    <select class="custom-select" id="deposit-account-select" name="input-fields">
+    </select>
+    <div class="invalid-feedback">Missing Acount Selection.</div>
+  </div>
+</div>
+
+<br>
+<div class="row">
+  <div class="col">
+    <label for="deposit-category-select">Deposit Category:</label>
+    <select class="custom-select" id="deposit-category-select" name="input-fields">
+    </select>
+    <div class="invalid-feedback">Missing Category Selection.</div>
+  </div>
+</div>
+
+<br>
+<div class="row">
+  <div class="col-sm">
+    <label for="deposit-description-input">Deposit Description:</label>
+    <input type="text" class="form-control" id="deposit-description-input" name="input-fields" list="description-datalist">
+    <datalist id="description-datalist">
+    </datalist>
+  </div>
+</div>
+
+<br>
+<div class="row">
+  <div class="col-sm">
+    <label for="deposit-description-input">Note:</label>
+    <input type="text" class="form-control" id="deposit-note-input" name="input-fields">
+  </div>
+</div>
+
+<br>
+<div class="row">
+  <div class="col-md-8">
+  </div>
+  <div class="col-md-4">
+    <div class="form-group">
+      <label class="control-label" for="deposit-amount-input">Deposit Amount</label>
+      <div class="form-group">
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text">$</span>
+          </div>
+          <input type="number" class="form-control" min="0.00" max="1000000.00" step="0.01" id="deposit-amount-input" name="input-fields">
+          <div class="invalid-feedback">Missing Deposit Amount.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col text-right">
+    <div class="form-check">
+      <label class="form-check-label">
+      <input class="form-check-input" type="checkbox" id="deposit-pending-checkbox"  name="input-pending" value="">
+      Pending Charge
+      </label>
+    </div>
+  </div>
+</div>
+
+<br>
+<div class="row">
+  <div class="col text-right">
+    <button type="button" class="btn btn-primary" onclick="createDepositTxn();" >Submit</button>
+    <button type="button" class="btn btn-secondary" onclick="resetInputFields();">Reset</button>
+  </div>
+</div>
+
+<!-- ========================================================================================== -->
+
+<script>
+  function depositFields() {
+    return [
+      {id : 'deposit-date-input', class : 'form-control', check : true, type : 'value'},
+      {id : 'deposit-account-select', class : 'custom-select', check : true, type : 'value'},
+      {id : 'deposit-category-select', class : 'custom-select', check : true, type : 'value'},
+      {id : 'deposit-description-input', class : 'form-control', check : true, type : 'value'},
+      {id : 'deposit-note-input', class : 'form-control', check : false, type : 'value'},
+      {id : 'deposit-amount-input', class : 'form-control', check : true, type : 'value'},
+      {id : 'deposit-txn-type', class : 'form-control-plaintext', check : false, type : 'value'},
+      {id : 'deposit-pending-checkbox', class : 'form-check-input', check : false, type : 'checked'}
+    ];
+  }
+
+  // ==========================================================================================
+
+  function buildDepositFields() {
+    buildSelections(pageInfo.accounts,'deposit-account-select',false,'name','name',true);
+    buildSelections(pageInfo.incomes,'deposit-category-select',false,'name','name',true);
+  }
+
+  // ==========================================================================================
+
+  function createDepositTxn() {
+    let error = checkDepositFieldsBeforeSave();
+
+    if(!error) {
+      $("#overlay").show();
+
+      // Build New Txn
+      let newTxn = new Transaction(...depositFields().map(f => document.getElementById(f.id)[f.type]));
+
+      // Save Changes
+      google
+        .script
+        .run
+        .withSuccessHandler(afterTxnSubmit)
+        .createTransaction(newTxn);
+    }
+  }
+
+  // ==========================================================================================
+
+  function checkDepositFieldsBeforeSave() {
+    let error = false;
+
+    for(let field of depositFields()) {
+      if(field.check) error = checkField(field.id,field.class,error);
+    }
+    return error;
+  }
+
+  // ==========================================================================================
+
+</script>

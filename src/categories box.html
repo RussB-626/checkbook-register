@@ -1,0 +1,233 @@
+<div class="row">
+  <div class="col-lg-2">
+    <label for="category-years-select">Year:</label>
+    <select class="form-control" id="category-years-select" onchange="buildCategories();">
+    </select>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col">
+
+    <ul class="nav nav-pills justify-content-center">
+      <li class="nav-item">
+        <a class="nav-link active" data-toggle="tab" href="#expenses-tab">Expenses</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#incomes-tab">Incomes</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#differences-tab">Differences</a>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+
+      <div class="tab-pane fade active show" id="expenses-tab">
+        <br>
+        <div class="card text-white bg-dark" style="overflow-x: auto;">
+          <div class="card-body">
+            <div id="expenses-txns-table-div"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-pane fade" id="incomes-tab">
+        <br>
+        <div class="card text-white bg-dark" style="overflow-x: auto;">
+          <div class="card-body">
+            <div id="incomes-txns-table-div"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-pane fade" id="differences-tab">
+        <br>
+        <div class="card text-white bg-dark" style="overflow-x: auto;">
+          <div class="card-body">
+            <div id="differences-txns-table-div"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- ========================================================================================== -->
+
+<script>
+  function updateCategoriesYearsSelection() {
+    buildSelections(pageInfo.years,'category-years-select',false,'year','year');
+    document.getElementById('category-years-select').value = new Date().getFullYear();
+  }
+
+  // ==========================================================================================
+
+  function buildCategories() {
+    updateCategoriesByYearInfo('expenses-txns-table-div','W',pageInfo.expenses);
+    updateCategoriesByYearInfo('incomes-txns-table-div','D',pageInfo.incomes);
+    updateCategoriesDifferencesByYearInfo();
+  }
+
+  // ==========================================================================================
+
+  function updateCategoriesByYearInfo(tableId,txnType,categories) {
+    document.getElementById(tableId).innerHTML = "";
+
+    let selectedYear = document.getElementById('category-years-select').value;
+
+    // Filter Txns By Year and Txn Type
+    let txns = pageInfo.txns.filter(t => t.date.substring(0,4) === selectedYear && t.type === txnType);
+
+    let categoryTxns = {};
+
+    // Loop On Categories
+    for(let category of categories.map(c => c.name)) {
+      
+      if(!pageInfo.catsToIgn.find(c => c.name === category)) {
+        for(let month of monthsList()) {
+
+          // Filter Transactions By Month and Category
+          let txnsByMonthAndCat = txns.filter(t => t.date.substring(5,7) === pageInfo.monthsMap[month].month && t.category === category);
+
+          // Add Up Totals By Month and Category
+          let totalByMonthAndCat = txnsByMonthAndCat.reduce((total, t) => total + Number(t.amount),0);
+
+          // Establish Category Transaction Totals
+          if(!categoryTxns[category]) categoryTxns[category] = {};
+          categoryTxns[category][month] = financial(totalByMonthAndCat);
+
+          // Establish Total Values
+          if(!categoryTxns['Total']) categoryTxns['Total'] = {};
+          if(!categoryTxns['Total'][month]) categoryTxns['Total'][month] = 0;
+          categoryTxns['Total'][month] = financial(Number(categoryTxns['Total'][month]) + totalByMonthAndCat);
+        }
+      }
+    }
+    
+    // Build Table Elements
+    let html = '';
+    html += '<table class="table table-striped table-hover table-responsive-lg"><thead><tr>';
+    html += '<th></th>';
+
+    // Build Table Date Headers
+    for(let month of monthsList ()) {
+      html += '<th>' + pageInfo.monthsMap[month].short + '</th>';
+    }
+    html += '<th>Total</th></tr></thead><tbody>';
+
+    // Build Rows Of Values
+    for(let category of categories.map(c => c.name)) {
+
+      if(!pageInfo.catsToIgn.find(c => c.name === category)) {
+        let total = 0;
+        html += '<tr>';
+        html += '<th style="white-space: nowrap;">' + category + '</th>';
+
+        // Loop Through Months And Print Amounts And Add Up Totals
+        for(let month of monthsList()) {
+          let amount = categoryTxns[category][month];
+          total += Number(amount);
+          html += '<td>' + amount + '</td>';
+        }
+        html += '<th>' + financial(total) + '</th>';
+        html += '</tr>';
+      }
+    }
+
+    // Print Totals Line
+    let totalLineTotal = 0;
+    html += '<tr class="table-light text-dark">';
+    html += '<th style="white-space: nowrap;">Total</th>';
+    
+    // Loop Through Months And Print Amounts And Add Up Totals
+    for(let month of monthsList()) {
+      let amount = categoryTxns['Total'][month];
+      totalLineTotal = Number(totalLineTotal) + Number(amount);
+      html += '<td>' + financial(amount) + '</td>';
+    }
+
+    html += '<th>' + financial(totalLineTotal) + '</th>';
+    html += '</tr>';
+
+    html += '</tbody></table>';
+
+    document.getElementById(tableId).innerHTML = html;
+  }
+
+  // ==========================================================================================
+
+  function updateCategoriesDifferencesByYearInfo(tableId = 'differences-txns-table-div') {
+    document.getElementById(tableId).innerHTML = "";
+
+    let selectedYear = document.getElementById('category-years-select').value;
+
+    // Filter Txns By Year and Txn Type
+    let incomes = pageInfo.txns.filter(t => t.date.substring(0,4) === selectedYear && t.type === 'D');
+    let expenses = pageInfo.txns.filter(t => t.date.substring(0,4) === selectedYear && t.type === 'W');
+    
+    console.log(incomes);
+    console.log(expenses);
+
+    // Build Totals
+    let totals = {
+      year : {incomeTotal : 0, expenseTotal : 0, differenceTotal : 0}
+    };
+
+    for(let month of monthsList()) {
+      let incomeTotal = incomes.filter(t => t.date.substring(5,7) === pageInfo.monthsMap[month].month).reduce((sum,t) => sum + Number(t.amount),0);
+      let expenseTotal = expenses.filter(t => t.date.substring(5,7) === pageInfo.monthsMap[month].month).reduce((sum,t) => sum + Number(t.amount),0);
+      totals[month] = {
+        incomeTotal : incomeTotal,
+        expenseTotal : expenseTotal,
+        differenceTotal : incomeTotal - expenseTotal
+      };
+      totals['year'].incomeTotal += incomeTotal;
+      totals['year'].expenseTotal += expenseTotal;
+      totals['year'].differenceTotal += (incomeTotal - expenseTotal);
+    }
+    console.log(totals);
+    
+    // Build Table Elements
+    let html = '';
+    html += '<table class="table table-striped table-hover table-responsive-lg"><thead><tr>';
+    html += '<th></th>';
+
+    // Build Table Date Headers
+    for(let month of monthsList()) {
+      html += '<th>' + pageInfo.monthsMap[month].short + '</th>';
+    }
+    html += '<th>Total</th></tr></thead><tbody>';
+
+    // Build Row Of Incomes
+    html += '<tr><th>Income Totals</th>';
+    for(let month of monthsList()) {
+      html += `<td>${financial(totals[month].incomeTotal)}</td>`;
+    }
+    html += `<td>${financial(totals['year'].incomeTotal)}</td>`;
+    html += '</tr>';
+
+    // Build Row Of Expenses
+    html += '<tr><th>Expense Totals</th>';
+    for(let month of monthsList()) {
+      html += `<td>${financial(totals[month].expenseTotal)}</td>`;
+    }
+    html += `<td>${financial(totals['year'].expenseTotal)}</td>`;
+    html += '</tr>';
+
+    // Build Row Of Differences
+    html += '<tr class="table-light text-dark"><th>Differences</th>';
+    for(let month of monthsList()) {
+      html += `<td>${financial(totals[month].differenceTotal)}</td>`;
+    }
+    html += `<td>${financial(totals['year'].differenceTotal)}</td>`;
+    html += '</tr>';
+
+    html += '</tbody></table>';
+
+    document.getElementById(tableId).innerHTML = html;
+  }
+
+</script>

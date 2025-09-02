@@ -1,0 +1,142 @@
+<input type="text" readonly="" class="form-control-plaintext" id="withdrawal-txn-type" value="W" style="display: none;">
+<div class="row">
+  <div class="col">
+    <label for="withdraw-date-input">Withdraw Date:</label>
+    <input type="date" class="form-control" id="withdraw-date-input" name="input-dates" />
+  </div>
+</div>
+
+<br>
+<div class="row">
+  <div class="col">
+    <label for="withdraw-account-select">Withdraw Account:</label>
+    <select class="custom-select" id="withdraw-account-select" name="input-fields">
+    </select>
+    <div class="invalid-feedback">Missing Acount Selection.</div>
+  </div>
+</div>
+
+<br>
+<div class="row">
+  <div class="col">
+    <label for="withdraw-category-select">Withdraw Category:</label>
+    <select class="custom-select" id="withdraw-category-select" name="input-fields">
+    </select>
+    <div class="invalid-feedback">Missing Category Selection.</div>
+  </div>
+</div>
+
+<br>
+<div class="row">
+  <div class="col-sm">
+    <label for="withdraw-description-input">Withdraw Description:</label>
+    <input type="text" class="form-control" id="withdraw-description-input" name="input-fields" list="description-datalist">
+    <datalist id="description-datalist">
+    </datalist>
+  </div>
+</div>
+
+<br>
+<div class="row">
+  <div class="col-sm">
+    <label for="withdraw-description-input">Note:</label>
+    <input type="text" class="form-control" id="withdraw-note-input" name="input-fields">
+  </div>
+</div>
+
+<br>
+<div class="row">
+  <div class="col-md-8">
+  </div>
+  <div class="col-md-4">
+    <div class="form-group">
+      <label class="control-label" for="withdraw-amount-input">Withdraw Amount</label>
+      <div class="form-group">
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text">$</span>
+          </div>
+          <input type="number" class="form-control" min="0.00" max="1000000.00" step="0.01" id="withdraw-amount-input" name="input-fields">
+          <div class="invalid-feedback">Missing Withdraw Amount.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col text-right">
+    <div class="form-check">
+      <label class="form-check-label">
+      <input class="form-check-input" type="checkbox" id="withdraw-pending-checkbox" name="input-pending" value="">
+      Pending Charge
+      </label>
+    </div>
+  </div>
+</div>
+
+<br>
+<div class="row">
+  <div class="col text-right">
+    <button type="button" class="btn btn-primary" onclick="createWithdrawalTxn();">Submit</button>
+    <button type="button" class="btn btn-secondary" onclick="resetInputFields();">Reset</button>
+  </div>
+</div>
+
+<!-- ========================================================================================== -->
+
+<script>
+  function withdrawalFields() {
+    return [
+      {id : 'withdraw-date-input', class : 'form-control', check : true, type : 'value'},
+      {id : 'withdraw-account-select', class : 'custom-select', check : true, type : 'value'},
+      {id : 'withdraw-category-select', class : 'custom-select', check : true, type : 'value'},
+      {id : 'withdraw-description-input', class : 'form-control', check : true, type : 'value'},
+      {id : 'withdraw-note-input', class : 'form-control', check : false, type : 'value'},
+      {id : 'withdraw-amount-input', class : 'form-control', check : true, type : 'value'},
+      {id : 'withdrawal-txn-type', class : 'form-control-plaintext', check : false, type : 'value'},
+      {id : 'withdraw-pending-checkbox', class : 'form-check-input', check : false, type : 'checked'}
+    ];
+  }
+
+  // ==========================================================================================
+
+  function buildWithdrawalFields() {
+    buildSelections(pageInfo.accounts,'withdraw-account-select',false,'name','name',true);
+    buildSelections(pageInfo.expenses,'withdraw-category-select',false,'name','name',true);
+  }
+
+  // ==========================================================================================
+
+  function createWithdrawalTxn() {
+    let error = checkWithdrawalFieldsBeforeSave();
+
+    if(!error) {
+      $("#overlay").show();
+
+      // Build New Txn
+      let newTxn = new Transaction(...withdrawalFields().map(f => document.getElementById(f.id)[f.type]));
+      
+      // Save Changes
+      google
+        .script
+        .run
+        .withSuccessHandler(afterTxnSubmit)
+        .createTransaction(newTxn);
+    }
+  }
+
+  // ==========================================================================================
+
+  function checkWithdrawalFieldsBeforeSave() {
+    let error = false;
+
+    for(let field of withdrawalFields()) {
+      if(field.check) error = checkField(field.id,field.class,error);
+    }
+    return error;
+  }
+
+  // ==========================================================================================
+
+</script>

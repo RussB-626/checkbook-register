@@ -1,0 +1,297 @@
+<div class="modal fade" id="edit-txn-modal" tabindex="-1" role="dialog" aria-labelledby="edit-txn-modal-long-title" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      
+      <div class="modal-header" id="edit-txn-modal-header"> <!-- Modal Header -->
+        <table>
+          <tr>
+            <td>
+              <h5 class="modal-title" id="edit-txn-modal-long-title">Edit Transaction</h5>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <input type="text" readonly="" class="form-control-plaintext" id="txn-index" value="" style="display: none;">
+            </td>
+          </tr>
+        </table>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      
+      <div class="modal-body" id="edit-txn-modal-body"> <!-- Modal Body -->
+        <fieldset>
+
+          <div class="row">
+            <div class="col">
+              <label for="txn-date-input">Transaction Date:</label>
+              <input type="date" class="form-control" id="txn-date-input" name="txn-input" />
+            </div>
+          </div>
+
+          <br>
+
+          <div class="row">
+            <div class="col">
+              <label for="txn-type-select">Transaction Type</label>
+              <select class="custom-select" id="txn-type-select" onchange="updateCategories();">
+                <option value="W">Withdraw</option>
+                <option value="D">Deposit</option>
+                <option value="TW">Transfer Withdraw</option>
+                <option value="TD">Transfer Deposit</option>
+              </select>
+            </div>
+          </div>
+
+          <br>
+
+          <div class="row">
+            <div class="col">
+              <label for="txn-account-select">Transaction Account</label>
+              <select class="custom-select" id="txn-account-select">
+              </select>
+            </div>
+          </div>
+
+          <br>
+
+          <div class="row">
+            <div class="col">
+              <label for="txn-category-select">Transaction Category</label>
+              <select class="custom-select" id="txn-category-select">
+              </select>
+              <div class="invalid-feedback">Missing Category Selection.</div>
+            </div>
+          </div>
+
+          <br>
+
+          <div class="row">
+            <div class="col">
+              <label for="txn-description-input">Transaction Description:</label>
+              <input type="text" class="form-control" id="txn-description-input" list="description-datalist">
+              <datalist id="description-datalist">
+              </datalist>
+            </div>
+          </div>
+
+          <br>
+
+          <div class="row">
+            <div class="col">
+              <label for="txn-note-input">Transaction Note:</label>
+              <input type="text" class="form-control" id="txn-note-input">
+            </div>
+          </div>
+
+          <br>
+
+          <div class="row">
+            <div class="col">
+              <div class="form-group">
+                <label class="control-label" for="txn-amount-input">Transaction Amount</label>
+                <div class="form-group">
+                  <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text">$</span>
+                    </div>
+                    <input type="number" class="form-control" min="0.00" max="1000000.00" step="0.01" id="txn-amount-input" name="txn-input">
+                    <div class="invalid-feedback">Missing Transaction Amount.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <br>
+
+          <div class="row">
+            <div class="col">
+              <div class="custom-control custom-checkbox">
+                <input type="checkbox" class="custom-control-input" id="txn-pending-checkbox">
+                <label class="custom-control-label" for="txn-pending-checkbox">Transaction Pending</label>
+              </div>
+            </div>
+          </div>
+
+        </fieldset>
+      </div>
+      
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-info" onclick="onSave();">Save</button>
+        <button type="button" class="btn btn-danger" onclick="onDelete();">Delete</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+      
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================================================== -->
+
+<script>
+  function showTxnInfo(txnNum) {
+    let txnIndex = txnNum - 1;
+    let txn = pageInfo.txns[txnIndex];
+    document.getElementById('txn-index').value = txnIndex;
+    updatedTxn = {};
+    
+    document.getElementById('txn-date-input').value = txn.date;
+    document.getElementById('txn-type-select').value = txn.type;
+
+    // Set Category Selections
+    updatedCategorySelections(txn.type);
+    document.getElementById('txn-category-select').value = txn.category;
+
+    // Setup Account Selection
+    buildSelections(pageInfo.accounts,'txn-account-select',false,'name','name',true);
+    document.getElementById('txn-account-select').value = txn.account;
+
+    // Setup Transction Description Datalist
+    document.getElementById('txn-description-input').value = txn.description;
+    document.getElementById('txn-note-input').value = txn.note;
+    document.getElementById('txn-amount-input').value = txn.amount;
+    document.getElementById('txn-pending-checkbox').checked = txn.pending;
+
+    modalOpen('#edit-txn-modal');
+  }
+
+  function updateCategories() {
+    let txnType = document.getElementById('txn-type-select').value;
+    updatedCategorySelections(txnType);
+
+    // Set Category If Txn Type Changes
+    let txnIndex = document.getElementById('txn-index').value;
+    let txn = pageInfo.txns[txnIndex];
+    if(txn) document.getElementById('txn-category-select').value = txn.category;
+  }
+
+  function updatedCategorySelections(txnType) {
+    if(txnType.indexOf('T') >= 0) buildSelections(pageInfo.transfers,'txn-category-select',true,'name','name',true);
+    else if(txnType.indexOf('W') >= 0) buildSelections(pageInfo.expenses,'txn-category-select',true,'name','name',true);
+    else buildSelections(pageInfo.incomes,'txn-category-select',true,'name','name',true);
+  }
+
+  // ==========================================================================================
+
+  function onSave() {
+    let updatedTxn = {};
+    let txnIndex = document.getElementById('txn-index').value;
+    let error = checkFieldsBeforeSave();
+
+    if(txnIndex && !error) {
+      // Build Updated Txn Info
+      updatedTxn = new Transaction(...editFields().map(f => document.getElementById(f.id)[f.type]));
+
+      // Get old Txn info, and list of Object keys/fields
+      let oldTxn = pageInfo.txns[txnIndex];
+      let fields = Object.keys(new Transaction());
+
+      // Check if there are actual changes to the txn
+      let diff = false;
+      for(let field of fields) {
+
+        // If differences are found, stop looping and set diff to true
+        if(updatedTxn[field].toString() !== oldTxn[field].toString()) {
+          diff = true;
+          break;
+        }
+      }
+
+      // If there are differences save the new changes
+      if(diff) {
+        modalClose('#edit-txn-modal');
+        $("#overlay").show();
+
+        // Save Changes
+        google
+          .script
+          .run
+          .withSuccessHandler(afterSave)
+          .editTransaction(txnIndex,updatedTxn);
+      }
+
+    }
+  }
+
+  // ==========================================================================================
+
+  function checkFieldsBeforeSave() {
+    let error = false;
+
+    for(let field of editFields()) {
+      if(field.check) error = checkField(field.id,field.class,error);
+    }
+    return error;
+  }
+
+  // ==========================================================================================
+
+  function afterSave(results) {
+    results = JSON.parse(results);
+
+    if(!results.error) {
+      // Update Txn Info
+      pageInfo.txns[results.txnIndex] = results.txn;
+
+      // Rebuild Page Elements
+      buildPage();
+      $("#overlay").hide();
+    } else {
+      $("#overlay").hide();
+    }
+  }
+
+  // ==========================================================================================
+
+  function onDelete() {
+    let txnIndex = document.getElementById('txn-index').value;
+
+    if(txnIndex) {
+      modalClose('#edit-txn-modal');
+      $("#overlay").show();
+
+      // Delete Transaction
+      google
+        .script
+        .run
+        .withSuccessHandler(afterDelete)
+        .deleteTransaction(txnIndex);
+    }
+  }
+
+  // ==========================================================================================
+
+  function afterDelete(results) {
+    results = JSON.parse(results);
+
+    if(!results.error) {
+      // Delete Transaction From Txns Array
+      pageInfo.txns.splice(results.txnIndex,1);
+
+      buildPage();
+      $('#overlay').hide();
+
+    } else {
+      $('#overlay').hide();
+    }
+  }
+
+  // ==========================================================================================
+
+  function editFields() {
+    return [
+      {id : 'txn-date-input', class : 'form-control', check : true, type : 'value'},
+      {id : 'txn-account-select', class : 'custom-select', check : true, type : 'value'},
+      {id : 'txn-category-select', class : 'custom-select', check : true, type : 'value'},
+      {id : 'txn-description-input', class : 'form-control', check : true, type : 'value'},
+      {id : 'txn-note-input', class : 'form-control', check : false, type : 'value'},
+      {id : 'txn-amount-input', class : 'form-control', check : true, type : 'value'},
+      {id : 'txn-type-select', class : 'custom-select', check : true, type : 'value'},
+      {id : 'txn-pending-checkbox', class : 'custom-control-input', check : false, type : 'checked'}
+    ]
+  }
+
+</script>

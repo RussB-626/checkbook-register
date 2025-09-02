@@ -1,0 +1,103 @@
+<div class="row">
+  <div class="col-lg-2">
+    <label for="common-txn-withdrawals-years-select">Year:</label>
+    <select class="form-control" id="common-txn-withdrawals-years-select" onchange="updateCommonInfo();">
+    </select>
+  </div>
+</div>
+<br>
+<div class="card text-white bg-dark" style="overflow-x: auto;">
+  <div class="card-body">
+    <div id="common-txn-withdrawals-table-div"></div>
+  </div>
+</div>
+
+<!-- ========================================================================================== -->
+
+<script>
+  function updateCommonYearsSelection() {
+    buildSelections(pageInfo.years,'common-txn-withdrawals-years-select',false,'year','year');
+    document.getElementById('common-txn-withdrawals-years-select').value = new Date().getFullYear();
+  }
+
+  // ==========================================================================================
+
+  function updateCommonInfo() {
+    document.getElementById('common-txn-withdrawals-table-div').innerHTML = "";
+    let selectedYear = document.getElementById('common-txn-withdrawals-years-select').value;
+
+    // Filter Txns By Year And withdrawals Only
+    let txns = pageInfo.txns.filter(t => t.date.substring(0,4) === selectedYear && t.type === 'W');
+
+    let commonTxns = {};
+
+    // Loop on Common Txns
+    for(let txnDesc of pageInfo.commonTxns) {    
+      // Loop On Months
+      for(let month of monthsList()) {
+
+        // Filter txns by month and description
+        let monthDescTxns = txns.filter(t => t.date.substring(5,7) === pageInfo.monthsMap[month].month && t.description === txnDesc.name);
+
+        // Add up totals for Description and Month
+        let total = monthDescTxns.reduce((total, t) => total + Number(t.amount),0);
+
+        // Establish Commong Transaction Totals
+        if(!commonTxns[txnDesc.name]) commonTxns[txnDesc.name] = {};
+        commonTxns[txnDesc.name][month] = financial(total);
+
+        // Establish Total Values
+        if(!commonTxns['Total']) commonTxns['Total'] = {};
+        if(!commonTxns['Total'][month]) commonTxns['Total'][month] = 0;
+        commonTxns['Total'][month] =  financial(Number(commonTxns['Total'][month]) + total);
+      }
+    }
+    
+    // Build Table Elements
+    let html = '';
+    html += '<table class="table table-striped table-hover table-responsive-lg"><thead><tr>';
+    html += '<th></th>';
+
+    // Build Table Date Headers
+    for(let month of monthsList ()) {
+      html += '<th>' + pageInfo.monthsMap[month].short + '</th>';
+    }
+    html += '<th>Total</th></tr></thead><tbody>';
+
+    // Build Rows Of Values
+    for(let txnDesc of pageInfo.commonTxns) {
+      let total = 0;
+      html += '<tr>';
+      html += '<th style="white-space: nowrap;">' + txnDesc.name + '</th>';
+
+      // Loop Through Months And Print Amounts And Add Up Totals
+      for(let month of monthsList()) {
+        let amount = commonTxns[txnDesc.name][month];
+        total += Number(amount);
+        html += '<td>' + amount + '</td>';
+      }
+      html += '<th>' + financial(total) + '</th>';
+      html += '</tr>';
+    }
+
+    // Print Totals Line
+    let totalLineTotal = 0;
+    html += '<tr class="table-light text-dark">';
+    html += '<th style="white-space: nowrap;">Total</th>';
+
+    // Loop Through Months And Print Amounts And Add Up Totals
+    for(let month of monthsList()) {
+      let amount = commonTxns['Total'][month];
+      totalLineTotal += Number(amount);
+      html += '<td>' + financial(amount) + '</td>';
+    }
+    
+    html += '<th>' + financial(totalLineTotal) + '</th>';
+    html += '</tr>';
+
+    html += '</tbody></table>';
+
+    document.getElementById('common-txn-withdrawals-table-div').innerHTML = html;
+  }
+
+</script>

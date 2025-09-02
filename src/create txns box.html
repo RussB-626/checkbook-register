@@ -1,0 +1,110 @@
+<ul class="nav nav-pills justify-content-center">
+  <li class="nav-item">
+    <a class="nav-link active" data-toggle="tab" href="#withdraw" onclick="resetInputFields();">Withdraw</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" data-toggle="tab" href="#deposit" onclick="resetInputFields();">Deposit</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" data-toggle="tab" href="#transfer" onclick="resetInputFields();">Transfer</a>
+  </li>
+</ul>
+
+<div class="tab-content">
+  <!-- withdrawals Tab -->
+  <div class="tab-pane fade active show" id="withdraw">
+    <br>
+    <div class="card text-white bg-dark p-3">
+      <?!= include('withdrawal fields'); ?>
+    </div>
+  </div>
+  
+  <!-- Deposits Tab -->
+  <div class="tab-pane fade" id="deposit">
+    <br>
+    <div class="card text-white bg-dark p-3">
+      <?!= include('deposit fields'); ?>
+    </div>
+  </div>
+  
+  <!-- Transfers Tab -->
+  <div class="tab-pane fade" id="transfer">
+    <br>
+    <div class="card text-white bg-dark p-3">
+      <?!= include('transfer fields'); ?>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================================================== -->
+
+<script>
+  function buildTransactionFields() {
+    buildWithdrawalFields();
+    buildDepositFields();
+    buildTransferFields();
+  }
+
+  // ==========================================================================================
+
+  function resetInputFields() {
+    $("#overlay").show();
+
+    let inputFields = document.getElementsByName('input-fields');
+    for(let i = 0; i < inputFields.length; i++){
+      inputFields[i].value = "";
+    }
+    
+    let pendingFields = document.getElementsByName('input-pending');
+    for(let i = 0; i < pendingFields.length; i++) {
+      pendingFields[i].checked = false;
+    }
+    
+    let dateInputs = document.getElementsByName('input-dates');
+    let date = getToday();
+    for(let i = 0; i < dateInputs.length; i++) {
+      dateInputs[i].value = date;
+    }
+    
+    // resetFieldClasses();
+    
+    $("#overlay").hide();
+  }
+
+  // ==========================================================================================
+
+  function afterTxnSubmit(results) {
+    results = JSON.parse(results);
+
+    if(!results.error) {
+      // Add New Transaction
+      pageInfo.txns.push(results.txn);
+
+      // Rebuild Page Elements
+      buildPage();
+      $("#overlay").hide();
+    } else {
+      $("#overlay").hide();
+    }
+  }
+
+  // ==========================================================================================
+
+  function afterTxnsSubmit(results) {
+    results = JSON.parse(results);
+
+    if(!results.error) {
+      // Add New Transactions
+      for(let txn of results.txns) {
+        pageInfo.txns.push(txn);
+      }
+
+      // Rebuild Page Elements
+      buildPage();
+      $("#overlay").hide();
+    } else {
+      $("#overlay").hide();
+    }
+  }
+
+</script

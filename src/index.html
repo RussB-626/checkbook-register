@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <?!= include('style sheet'); ?>
+  </head>
+  <body>
+    <?!= include('scripts'); ?>
+    <?!= include('navigation'); ?>
+    <?!= include('edit txn modal'); ?>
+    <div class="container-fluid">
+    
+      <div id="overlay"></div>
+      
+      <br>
+      <div class="row justify-content-md-center">
+        <div class="accordion col-lg-12" id="main-accordion">
+
+            <div class="card"> <!-- Card 1 -->
+            <div class="card-header" id="create-txns-header">
+              <h5 class="mb-0">
+                <button class="btn btn-link collapsed text-info" type="button" data-toggle="collapse" data-target="#create-txns-collapse" aria-expanded="false" aria-controls="create-txns-collapse">
+                  Create Transactions
+                </button>
+              </h5>
+            </div>
+            <div id="create-txns-collapse" class="collapse" aria-labelledby="create-txns-header">
+              <div class="card-body">
+                <?!= include('create txns box'); ?>
+              </div>
+            </div>
+          </div>
+
+          <div class="card"> <!-- Card 2 -->
+            <div class="card-header" id="txns-header">
+              <h5 class="mb-0">
+                <button class="btn btn-link collapsed text-info" type="button" data-toggle="collapse" data-target="#txns-collapse" aria-expanded="true" aria-controls="txns-collapse">
+                  Transactions
+                </button>
+              </h5>
+            </div>
+            <div id="txns-collapse" class="collapse show" aria-labelledby="txns-header">
+              <div class="card-body">
+                <?!= include('balances and txns box'); ?>
+              </div>
+            </div>
+          </div>
+
+          <div class="card"> <!-- Card 3 -->
+            <div class="card-header" id="common-txn-withdrawals-header">
+              <h5 class="mb-0">
+                <button class="btn btn-link collapsed text-info" type="button" data-toggle="collapse" data-target="#common-txn-withdrawals-collapse" aria-expanded="false" aria-controls="common-txn-withdrawals-collapse">
+                  Common Transaction Withdrawals
+                </button>
+              </h5>
+            </div>
+            <div id="common-txn-withdrawals-collapse" class="collapse" aria-labelledby="common-txn-withdrawals-header">
+              <div class="card-body">
+                <?!= include('common txn withdrawals box'); ?>
+              </div>
+            </div>
+          </div>
+
+          <div class="card"> <!-- Card 4 -->
+            <div class="card-header" id="categories-header">
+              <h5 class="mb-0">
+                <button class="btn btn-link collapsed text-info" type="button" data-toggle="collapse" data-target="#categories-collapse" aria-expanded="false" aria-controls="categories-collapse">
+                  Categories
+                </button>
+              </h5>
+            </div>
+            <div id="categories-collapse" class="collapse" aria-labelledby="categories-header">
+              <div class="card-body">
+                <?!= include('categories box'); ?>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </body>
+</html>
+
+<script>
+
+  $('#overlay').show();
+
+  google
+    .script
+    .run
+    .withSuccessHandler(compilePageInfo)
+    .getPageInfo(true);
+  
+</script>
