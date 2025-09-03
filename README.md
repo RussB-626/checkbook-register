@@ -1,5 +1,8 @@
-# checkbook-register
-A lightweight checkbook register using Google Apps Script and Google Sheets to track transactions, expenses, and balances.
+# Google Apps Script - Checkbook Register
+
+This project is a Checkbook Register built with Google Apps Script to run directly within a Google Sheet. It provides a user-friendly interface to manage financial accounts and track transactions without leaving the spreadsheet.
+
+---
 
 ![Checkbook Register Main Page](imgs/main_app_page.png)
 
@@ -44,15 +47,80 @@ A lightweight checkbook register using Google Apps Script and Google Sheets to t
     <img src="imgs/categories_differences_page.png">
 </details>
 
----
+## Features
 
+Add, Edit, and Delete Transactions: Easily manage your financial entries.
+
+Multiple Account Support: Track finances across different accounts in separate sheets.
+
+## Table of Contents
+
+- [How to Use](#how-to-use)
 - [Google Sheet Setup](#google-sheet-setup)
 - [Installation and Setup Guide](#installation-and-setup-guide)
 - [Google Apps Script Setup and Deployment](#google-script-setup-and-deployment)
 - [Google Apps Script Redeployment After Edits](#google-apps-script-redeployment-after-edits)
+- [Technology Stack](#technology-stack)
 - [Contributing](#contributing)
 
 ---
+
+## How to Use
+
+- Adding Transactions:
+
+    - Withdrawals
+
+        - Navigate to Create Transactions > Click Withdraw tab
+        - Select a Withdraw Account
+        - Select a Withdraw Category
+        - Type in or Select a Withdraw Description
+        - Add any notes you may have for the transaction
+        - Add a dollar amount for the transaction
+        - Check off the Pending Charge option if you're adding a pending transaction
+        - Click Submit
+
+    - Deposits
+
+        - Navigate to Create Transactions > Click Deposit tab
+        - Select a Deposit Account
+        - Select a Deposit Category
+        - Type in or Select a Desposit Description
+        - Add any notes you may have for the transaction
+        - Add a dollar amount for the transaction
+        - Check off the Pending Charge option if you're adding a pending transaction
+        - Click Submit
+
+    - Transfers
+
+        - Navigate to Create Transactions > Click Transfer tab
+        - Select a Transfer From Account
+        - Select a Transfer To Account
+        - Select a Transfer Category
+        - Type in or Select a Transfer Description
+        - Add any notes you may have for the transaction
+        - Add a dollar amount for the transaction
+        - Check off the Pending Charge option if you're adding a pending transaction
+        - Click Submit
+
+- Editing Transactions
+
+    - Navigate to Transactions > Txns Tab
+    - Click on a Transaction Number under the # (number) column
+    - The Date, Transaction Type, Transaction Account, Transaction Category, Transaction Description, Transaction Note, Transaction Dollar Amount, and Transaction Pending values can be edited
+    - Click Save when finished
+
+- Deleting Transactions
+
+    - Navigate to Transactions > Txns Tab
+    - Click on a Transaction Number under the # (number) column
+    - Click Delete
+
+- Reviewing Pending Transactions
+
+    - Navigate to Transactions > Pending tab
+    - All pending transactions will be listed here
+    - Editing a transaction and unchecking the Transaction Pending option allows you to remove any pending transactions from the page
 
 ## Google Sheet Setup
 
@@ -239,6 +307,12 @@ Here are some example values to add to your administrative tabs within the Googl
         <li>Hold</li>
     </ul>
 </details>
+
+## Technology Stack
+
+- Google Apps Script (JavaScript-based)
+- Google Sheets as the database and UI host
+- HTML/CSS for custom dialogs and sidebars
 
 ## Contributing
 
